@@ -14,7 +14,17 @@ from pydantic import BaseModel, model_validator, SecretStr
 
 from app.settings import env_var
 
-credential = ApiCredential(api_token=SecretStr(env_var.token))
+proxies = {'http': env_var.proxy}
+
+
+class ApiCredential_proxy(ApiCredential):
+
+    async def get_session(self, timeout: int = 180, update_headers: dict = None):
+        result = await super().get_session(timeout, update_headers)
+        result.proxies = proxies
+        return result
+
+credential = ApiCredential_proxy(api_token=SecretStr(env_var.token))
 
 try:
     import ujson as json
